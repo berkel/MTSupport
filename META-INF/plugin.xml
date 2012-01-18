@@ -1,0 +1,25 @@
+<idea-plugin version="2">
+	<name>MT Support</name>
+	<description>Mail.Ru templater support</description>
+	<version>1.0</version>
+	<vendor email="shkinev@corp.mail.ru" url="https://github.com/berkel/MTSupport">Dmirty Shkinev</vendor>
+	<idea-version since-build="1.0"/>
+
+    <depends>com.intellij.modules.xml</depends>
+
+	<application-components>
+	</application-components>
+
+	<project-components>
+		<component>
+			<implementation-class>com.intellij.plugins.MT.MTProjectComponent</implementation-class>
+		</component>
+	</project-components>
+
+	<actions>
+	</actions>
+
+	<extensions defaultExtensionNs="com.intellij">
+		<annotator language="HTML" implementationClass="com.intellij.plugins.MT.validation.MTAnnotator"/>
+	</extensions>
+</idea-plugin>
