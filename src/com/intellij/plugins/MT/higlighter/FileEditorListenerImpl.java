@@ -26,132 +26,134 @@ import java.util.Map;
  * Time: 18:46
  */
 public class FileEditorListenerImpl implements FileEditorManagerListener {
-    private final Map<VirtualFile, IncludeLinkHighlighter> linkHighlighters = new HashMap<VirtualFile, IncludeLinkHighlighter>();
-    private Project project;
-    private boolean isRegistered;
-    private EditorIncludeLinkParser editorIncludeLinkParser;
-    private static final Logger LOG = Logger.getInstance(FileEditorListenerImpl.class.getName());
-    private MessageBusConnection messageBusConnection;
+	private final Map<VirtualFile, IncludeLinkHighlighter> linkHighlighters = new HashMap<VirtualFile, IncludeLinkHighlighter>();
+	private Project project;
+	private boolean isRegistered;
+	private EditorIncludeLinkParser editorIncludeLinkParser;
+	private static final Logger LOG = Logger.getInstance(FileEditorListenerImpl.class.getName());
+	private MessageBusConnection messageBusConnection;
 
-    public FileEditorListenerImpl(@NotNull Project project) {
-        this.project = project;
-        this.editorIncludeLinkParser = new EditorIncludeLinkParser(project);
-    }
+	public FileEditorListenerImpl(@NotNull Project project) {
+		this.project = project;
+		this.editorIncludeLinkParser = new EditorIncludeLinkParser(project);
+	}
 
-    public void selectionChanged(final FileEditorManagerEvent event) {
-        final FileEditorManager editorManager = event.getManager();
-        if (project != editorManager.getProject()) {
-            assert false : this;
-            return;
-        }
+	public void selectionChanged(final FileEditorManagerEvent event) {
+		final FileEditorManager editorManager = event.getManager();
+		if (project != editorManager.getProject()) {
+			assert false : this;
+			return;
+		}
 
-        VirtualFile newFile = event.getNewFile();
-        VirtualFile oldFile = event.getOldFile();
+		VirtualFile newFile = event.getNewFile();
+		VirtualFile oldFile = event.getOldFile();
 
-        if (oldFile != null && newFile == null) {
-            removeHighlighter(oldFile);
-        } else if (newFile != null && !linkHighlighters.containsKey(newFile)) {
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(newFile);
-            if (psiFile != null) {
-                Editor editor = editorManager.getSelectedTextEditor();
-                if (editor != null) {
-                    addHighlighter(newFile, psiFile, editor);
-                }
-            }
-        }
-    }
+		if (oldFile != null && newFile == null) {
+			removeHighlighter(oldFile);
+		} else if (newFile != null && !linkHighlighters.containsKey(newFile)) {
+			PsiFile psiFile = PsiManager.getInstance(project).findFile(newFile);
+			if (psiFile != null) {
+				Editor editor = editorManager.getSelectedTextEditor();
+				if (editor != null) {
+					addHighlighter(newFile, psiFile, editor);
+				}
+			}
+		}
+	}
 
-    public void projectClosed() {
-        deactivate();
-    }
+	public void projectClosed() {
+		deactivate();
+	}
 
-    public void projectOpened() {
-        activate();
-        Task.Backgroundable task = new ScanningIncludeLinksTask(project, this);
-        ProgressManager.getInstance().run(task);
-    }
+	public void projectOpened() {
+		activate();
+		Task.Backgroundable task = new ScanningIncludeLinksTask(project, this);
+		ProgressManager.getInstance().run(task);
+	}
 
-    public void deactivate() {
-        if (isRegistered) {
-            if (!project.isDisposed()) {
-                messageBusConnection.disconnect();
-            }
-            isRegistered = false;
-        }
-    }
+	public void deactivate() {
+		if (isRegistered) {
+			if (!project.isDisposed()) {
+				messageBusConnection.disconnect();
+			}
+			isRegistered = false;
+		}
+	}
 
-    public void activate() {
-        if (!isRegistered) {
-            messageBusConnection = project.getMessageBus().connect();
-            messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
-            isRegistered = true;
-        }
-    }
+	public void activate() {
+		if (!isRegistered) {
+			messageBusConnection = project.getMessageBus().connect();
+			messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
+			isRegistered = true;
+		}
+	}
 
-    private void addHighlighter(final VirtualFile newFile, final PsiFile psiFile, final Editor editor) {
-        IncludeLinkHighlighter highlighter = new IncludeLinkHighlighter(project, newFile, psiFile, editor, editorIncludeLinkParser);
-        highlighter.startListeninig();
-        linkHighlighters.put(newFile, highlighter);
-        highlighter.reparseAll();
-        highlighter.checkComments();
-    }
+	private void addHighlighter(final VirtualFile newFile, final PsiFile psiFile, final Editor editor) {
+		IncludeLinkHighlighter highlighter = new IncludeLinkHighlighter(project, newFile, psiFile, editor, editorIncludeLinkParser);
+		highlighter.startListeninig();
+		linkHighlighters.put(newFile, highlighter);
+		highlighter.reparseAll();
+		highlighter.checkComments();
+	}
 
-    private void removeHighlighter(final VirtualFile oldFile) {
-        IncludeLinkHighlighter hl = linkHighlighters.get(oldFile);
-        if (hl != null) {
-            hl.stopListening();
-            hl.removeAllRanges();
-            linkHighlighters.remove(oldFile);
-        }
-    }
+	private void removeHighlighter(final VirtualFile oldFile) {
+		IncludeLinkHighlighter hl = linkHighlighters.get(oldFile);
+		if (hl != null) {
+			hl.stopListening();
+			hl.removeAllRanges();
+			linkHighlighters.remove(oldFile);
+		}
+	}
 
-    public void scanOpenEditors() {
-        final FileEditorManager editorManager = FileEditorManager.getInstance(project);
-        if (editorManager == null) {
-            return;
-        }
-        for (VirtualFile openFile : editorManager.getSelectedFiles()) {
-            if (!linkHighlighters.containsKey(openFile)) {
-                PsiFile psiFile = PsiManager.getInstance(project).findFile(openFile);
-                if (psiFile != null) {
-                    Editor editor = editorManager.getSelectedTextEditor();
-                    if (editor != null) {
-                        addHighlighter(openFile, psiFile, editor);
-                    }
-                }
-            } else {
-                linkHighlighters.get(openFile).reparseAll();
-                linkHighlighters.get(openFile).checkComments();
-            }
-        }
-    }
+	public void scanOpenEditors() {
+		final FileEditorManager editorManager = FileEditorManager.getInstance(project);
+		if (editorManager == null) {
+			return;
+		}
+		for (VirtualFile openFile : editorManager.getSelectedFiles()) {
+			if (!linkHighlighters.containsKey(openFile)) {
+				PsiFile psiFile = PsiManager.getInstance(project).findFile(openFile);
+				if (psiFile != null) {
+					Editor editor = editorManager.getSelectedTextEditor();
+					if (editor != null) {
+						addHighlighter(openFile, psiFile, editor);
+					}
+				}
+			} else {
+				linkHighlighters.get(openFile).reparseAll();
+				linkHighlighters.get(openFile).checkComments();
+			}
+		}
+	}
 
-    public void removeAllLinkHighlighers() {
-        for (VirtualFile vf : linkHighlighters.keySet()) {
-            removeHighlighter(vf);
-        }
-        linkHighlighters.clear();
-    }
+	public void removeAllLinkHighlighers() {
+		for (VirtualFile vf : linkHighlighters.keySet()) {
+			removeHighlighter(vf);
+		}
+		linkHighlighters.clear();
+	}
 
-    private class ScanningIncludeLinksTask extends Task.Backgroundable {
-        private final FileEditorListenerImpl fileEditor;
-        public ScanningIncludeLinksTask(@org.jetbrains.annotations.Nullable Project project, final FileEditorListenerImpl fileEditor) {
-            super(project, "Scanning files for include", false);
-            this.fileEditor = fileEditor;
-        }
-        public void run(@NotNull final ProgressIndicator progressIndicator) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    fileEditor.scanOpenEditors();
-                }
-            });
-        }
-    }
+	private class ScanningIncludeLinksTask extends Task.Backgroundable {
+		private final FileEditorListenerImpl fileEditor;
 
-    public void fileOpened(final FileEditorManager fileEditorManager, final VirtualFile virtualFile) {
-    }
+		public ScanningIncludeLinksTask(@org.jetbrains.annotations.Nullable Project project, final FileEditorListenerImpl fileEditor) {
+			super(project, "Scanning files for include", false);
+			this.fileEditor = fileEditor;
+		}
 
-    public void fileClosed(final FileEditorManager fileEditorManager, final VirtualFile virtualFile) {
-        removeHighlighter(virtualFile);
-    }
+		public void run(@NotNull final ProgressIndicator progressIndicator) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					fileEditor.scanOpenEditors();
+				}
+			});
+		}
+	}
+
+	public void fileOpened(final FileEditorManager fileEditorManager, final VirtualFile virtualFile) {
+	}
+
+	public void fileClosed(final FileEditorManager fileEditorManager, final VirtualFile virtualFile) {
+		removeHighlighter(virtualFile);
+	}
 }

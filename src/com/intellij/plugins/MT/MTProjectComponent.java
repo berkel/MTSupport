@@ -14,31 +14,31 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MTProjectComponent implements ProjectComponent {
 
-    private final Project project;
-    private FileEditorListenerImpl fileEditorListener;
-    private static final Logger LOG = Logger.getInstance(MTProjectComponent.class.getName());
+	private final Project project;
+	private FileEditorListenerImpl fileEditorListener;
+	private static final Logger LOG = Logger.getInstance(MTProjectComponent.class.getName());
 
-    public MTProjectComponent(Project project) {
-        this.project = project;
-    }
+	public MTProjectComponent(Project project) {
+		this.project = project;
+	}
 
-    public void initComponent() {
-        this.fileEditorListener = new FileEditorListenerImpl(project);
-    }
+	public void initComponent() {
+		this.fileEditorListener = new FileEditorListenerImpl(project);
+	}
 
-    public void disposeComponent() {
-    }
+	public void disposeComponent() {
+	}
 
-    @NotNull
-    public String getComponentName() {
-        return "MTProjectComponent";
-    }
+	@NotNull
+	public String getComponentName() {
+		return "MTProjectComponent";
+	}
 
-    public void projectOpened() {
-        fileEditorListener.projectOpened();
-    }
+	public void projectOpened() {
+		fileEditorListener.projectOpened();
+	}
 
-    public void projectClosed() {
-        fileEditorListener.projectClosed();
-    }
+	public void projectClosed() {
+		fileEditorListener.projectClosed();
+	}
 }

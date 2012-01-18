@@ -5,7 +5,7 @@
 	<vendor email="shkinev@corp.mail.ru" url="https://github.com/berkel/MTSupport">Dmirty Shkinev</vendor>
 	<idea-version since-build="1.0"/>
 
-    <depends>com.intellij.modules.xml</depends>
+	<depends>com.intellij.modules.xml</depends>
 
 	<application-components>
 	</application-components>

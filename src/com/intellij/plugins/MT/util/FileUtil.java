@@ -11,17 +11,17 @@ import com.intellij.psi.PsiFile;
  */
 public final class FileUtil {
 
-    public static VirtualFile findVirtualFileByPsiFile(PsiFile file, String fileName) {
-        VirtualFile currentVirtualFile = file.getVirtualFile();
-        if (currentVirtualFile != null && currentVirtualFile.isValid()) {
-            VirtualFile dir = currentVirtualFile.getParent();
-            if (dir != null && dir.isValid()) {
-                VirtualFile virtualFile = dir.findFileByRelativePath(fileName);
-                if (virtualFile != null && virtualFile.isValid()) {
-                    return virtualFile;
-                }
-            }
-        }
-        return null;
-    }
+	public static VirtualFile findVirtualFileByPsiFile(PsiFile file, String fileName) {
+		VirtualFile currentVirtualFile = file.getVirtualFile();
+		if (currentVirtualFile != null && currentVirtualFile.isValid()) {
+			VirtualFile dir = currentVirtualFile.getParent();
+			if (dir != null && dir.isValid()) {
+				VirtualFile virtualFile = dir.findFileByRelativePath(fileName);
+				if (virtualFile != null && virtualFile.isValid()) {
+					return virtualFile;
+				}
+			}
+		}
+		return null;
+	}
 }
